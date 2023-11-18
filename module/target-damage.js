@@ -420,13 +420,19 @@ async function applyDamage(
             options: messageRollOptions,
           })
         : [];
-    await token.actor
-      .getContextualClone(originRollOptions, ephemeralEffects)
+		
+	const contextClone = token.actor.getContextualClone(originRollOptions, ephemeralEffects);
+	const applicationRollOptions = new Set([
+		...messageRollOptions.filter((o) => !/^(?:self|target):/.test(o)),
+		...originRollOptions,
+		...contextClone.getSelfRollOptions(),
+	]);
+    await contextClone
       .applyDamage({
         damage,
         token,
         skipIWR: multiplier <= 0,
-        rollOptions: new Set(message.flags.pf2e.context?.options ?? []),
+        rollOptions: applicationRollOptions,
         shieldBlockRequest,
       });
   }
